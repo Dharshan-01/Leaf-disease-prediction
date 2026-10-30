@@ -1,0 +1,64 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Large dataset archives & raw dumps
+dataset.zip
+*.zip
+*.tar.gz
+*.rar
+
+# Datasets (11,000+ raw image files; prepared via prepare_dataset.py)
+data/
+leaf_detector_dataset/
+
+# Training checkpoints & temporary logs
+*.log
+runs/detect/runs/detect/leaf_detector/train_batch*
+runs/detect/runs/detect/leaf_detector/val_batch*
+runs/classify/train/
+runs/classify/val/
+runs/classify/yolo_runs/leaf_cls/train_batch*
+runs/classify/yolo_runs/leaf_cls/val_batch*

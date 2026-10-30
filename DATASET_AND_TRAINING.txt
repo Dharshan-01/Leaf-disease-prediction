@@ -1,0 +1,128 @@
+================================================================================
+FLORASCAN AI — DATASET SPECIFICATION & MODEL TRAINING GUIDE
+================================================================================
+
+1. DATASET DETAILS
+--------------------------------------------------------------------------------
+Dataset Name:
+  PlantVillage Solanaceae Agricultural Pathology Dataset
+  (Tomato, Potato, and Bell Pepper Disease & Health Collection)
+
+Active Dataset Location:
+  Directory: data/
+  Structure:
+    data/train/   -> 70% training split (7,878 images)
+    data/val/     -> 20% validation split (2,251 images)
+    data/test/    -> 10% hold-out test split (1,128 images)
+
+Target Botanical Species & Disease Classes (9 Classes):
+  [Bell Pepper - Capsicum annuum]
+    1. Pepper__bell___Bacterial_spot  (Xanthomonas campestris pv. vesicatoria)
+    2. Pepper__bell___healthy         (Healthy foliage)
+
+  [Potato - Solanum tuberosum]
+    3. Potato___Early_blight          (Alternaria solani)
+    4. Potato___Late_blight           (Phytophthora infestans)
+    5. Potato___healthy               (Healthy foliage)
+
+  [Tomato - Solanum lycopersicum]
+    6. Tomato_Bacterial_spot          (Xanthomonas vesicatoria / perforans)
+    7. Tomato_Early_blight            (Alternaria linariae / solani)
+    8. Tomato_Late_blight             (Phytophthora infestans)
+    9. Tomato_healthy                 (Healthy foliage)
+
+Leaf Organ Detection Dataset:
+  Directory: leaf_detector_dataset/
+  Structure:
+    leaf_detector_dataset/images/ (train & val synthetic/augmented backgrounds)
+    leaf_detector_dataset/labels/ (YOLO normalized bounding box labels)
+    leaf_detector_dataset/dataset.yaml (YOLO dataset configuration)
+
+Dataset Preparation Script:
+  File: prepare_dataset.py
+  Usage: python prepare_dataset.py
+  Description: Extracts canonical classes from dataset.zip, filters out
+               non-target classes into excluded storage, and performs stratified
+               train/val/test splits (70/20/10) with fixed random seed 42.
+
+
+2. PYTHON FILES TO TRAIN THE MODELS
+--------------------------------------------------------------------------------
+
+A. MODEL 1: Deep Pathology Classifier (EfficientNet-B0 + Embeddings)
+   -----------------------------------------------------------------------------
+   Architecture: EfficientNet-B0 backbone with Global Average Pooling,
+                 1280-dim feature projection, and 9-class pathology head.
+   Dataset:      data/train, data/val
+   Files:
+     * model.py                  -> Model architecture definition
+     * dataset.py                -> PyTorch dataset loader with augmentations &
+                                    inverse-frequency class balancing weights
+     * train.py                  -> Main training loop (AdamW, Cosine Annealing,
+                                    Mixed Precision, Early Stopping)
+     * evaluate.py               -> Standalone evaluation on data/test
+     * export_onnx.py            -> Exports PyTorch weights to ONNX format
+
+   Training Command:
+     python train.py --epochs 25 --batch-size 32 --lr 1e-4
+
+   Evaluation Command:
+     python evaluate.py
+
+   ONNX Export Command:
+     python export_onnx.py
+     (Generates: model.onnx used for ultra-fast CPU inference)
+
+
+B. MODEL 2: SOTA Vision Classifier (YOLOv8n-cls)
+   -----------------------------------------------------------------------------
+   Architecture: YOLOv8 Nano Classifier fine-tuned for leaf crop & disease classes.
+   Dataset:      data/
+   Base Weights: yolov8n-cls.pt
+   Files:
+     * train_yolo.py             -> Fine-tunes YOLOv8n-cls on data/
+
+   Training Command:
+     python train_yolo.py
+
+   Output Model Checkpoint:
+     runs/classify/yolo_runs/leaf_cls/weights/best.pt
+
+
+C. MODEL 3: Whole-Organ Leaf Detector (YOLOv8 Object Detector)
+   -----------------------------------------------------------------------------
+   Architecture: YOLOv8 Nano Object Detector for whole leaf organ localization
+                 across complex field backgrounds (wood, skin, soil, tabletops).
+   Dataset:      leaf_detector_dataset/
+   Base Weights: yolov8n.pt
+   Files:
+     * create_leaf_detector_dataset.py -> Generates synthetic multi-background
+                                          foliage dataset with bounding boxes
+     * train_leaf_detector.py          -> Trains YOLOv8 object detector
+
+   Dataset Creation Command:
+     python create_leaf_detector_dataset.py
+
+   Training Command:
+     python train_leaf_detector.py
+
+   Output Model Checkpoint:
+     runs/detect/runs/detect/leaf_detector/weights/best.pt
+
+
+3. APPLICATION & VERIFICATION SCRIPTS
+--------------------------------------------------------------------------------
+Main Web Application & FastAPI Backend:
+  File: app.py
+  Start Server Command:
+    python -m uvicorn app:app --host 127.0.0.1 --port 8000
+
+Leaf Localization & Morphometrics Engine:
+  File: leaf_analyzer.py
+
+Testing & Verification Suites:
+  * python verify_implementation.py -> End-to-end verification across test cases
+  * python test_live_api.py         -> Live API diagnostic verification
+  * python batch_test.py            -> Multi-sample hold-out batch test
+================================================================================
+

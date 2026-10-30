@@ -1,0 +1,27 @@
+# FloraScan AI - Core & Training Dependencies
+
+# Web API & Server
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+python-multipart>=0.0.9
+
+# Deep Learning & Neural Models
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.1.0
+onnxruntime>=1.17.0
+
+# Computer Vision & Image Processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# Evaluation, Metrics & Visualization
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+tqdm>=4.65.0
+
+# Testing & Client Requests
+requests>=2.31.0
+httpx>=0.27.0
+
